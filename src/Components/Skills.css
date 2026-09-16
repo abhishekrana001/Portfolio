@@ -1,0 +1,33 @@
+.skills {
+  min-height: 60vh;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+.skills-item{
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.skills-item p{
+  padding: 12px 22px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  transition: 0.3s;
+  cursor: pointer;
+}
+.skills-item p:hover{
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+
+.skills h2 {
+  font-size: 35px;
+  margin-bottom: 30px;
+}
+
+.skills p {
+  margin: 10px 0;
+}
