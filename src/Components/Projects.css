@@ -31,10 +31,10 @@ h2 {
 }
 
 .project-card button {
+  border-radius: 10px;
   color: #f8fafc;
   padding: 10px 20px;
   margin-top: 10px;
-  border-radius: 10px;
   background-color: #334155;
 }
 

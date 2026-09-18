@@ -4,11 +4,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 60px;
-
   position: sticky;
   top: 0;
   z-index: 1000;
-
   background-color: #111827;
   border-bottom: 1px solid #334155;
 }
@@ -31,4 +29,55 @@
 .navbar-links a:hover {
   color: #38bdf8;
   text-decoration: underline;
+}
+
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  .navbar {
+    padding: 15px 20px;
+  }
+
+  .navbar-links {
+    display: none;
+  }
+
+  .menu-btn {
+    display: block;
+  }
+
+  .mobile-menu {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    position: absolute;
+    transition: transform 0.3s ease;
+    right: 0;
+    top: 3.5rem;
+    background-color: #111827;
+    width: 30vh;
+    gap: 20px;
+  }
+
+  .mobile-menu a {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 17px;
+  }
+
+  .mobile-menu a:hover {
+    color: #38bdf8;
+  }
 }

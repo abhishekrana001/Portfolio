@@ -1,4 +1,6 @@
 import "./Home.css";
+import resume from "../assets/My_Cv.pdf";
+import profileImg from "../assets/profile.png";
 
 function Home() {
   return (
@@ -16,9 +18,17 @@ function Home() {
         </p>
 
         <div className="home-buttons">
-          <button>View Projects</button>
-          <button>Contact Me</button>
+          <a href={resume} download="My_Cv.pdf" className="resume">
+            Download Resume
+          </a>
+          <br />
+          <a href="#projects" className="viewprojects">
+            View Projects
+          </a>
         </div>
+      </div>
+      <div className="home-image">
+        <img src={profileImg} alt="Abhishek Rana" />
       </div>
     </section>
   );
