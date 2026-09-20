@@ -1,15 +1,15 @@
 .home {
-  min-height: 80vh;
+  min-height: 90vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  text-align: center;
-  padding: 80px 20px;
+  justify-content: center;
+  gap: 6rem;
+  padding: 60px 20px;
 }
 
 .home-content {
-  max-width: 800px;
-  margin-left: 2rem;
+  max-width: 650px;
+  text-align: center;
 }
 
 .home-intro {
@@ -32,7 +32,6 @@
 
 .home-description {
   max-width: 600px;
-  margin: auto;
   color: #94a3b8;
   line-height: 1.7;
 }
@@ -42,10 +41,10 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  text-align: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
-.resume{
+
+.resume {
   padding: 12px 22px;
   border: 1px solid #334155;
   border-radius: 6px;
@@ -55,44 +54,32 @@
 
 .resume:hover {
   color: #0ea5e9;
-  border: 1px solid #0ea5e9;
+  border-color: #0ea5e9;
 }
 
-.viewprojects{
+.viewprojects {
   padding: 12px 22px;
   border: 1px solid #94a3b8;
   background-color: #334155;
   border-radius: 6px;
   cursor: pointer;
 }
+
 .viewprojects:hover {
   color: #38bdf8;
   background-color: #1e293b;
   border-color: #38bdf8;
 }
 
-.home {
-  min-height: 90vh;
-  display: flex;
-  align-items: center;
-  gap: 6rem;
-  padding: 60px;
-}
-
-.home-content {
-  max-width: 600px;
-}
-
 .home-image img {
   width: 350px;
   height: 350px;
   object-fit: cover;
-  animation: floating 4s ease-in-out infinite;
   border-radius: 50%;
+  animation: floating 4s ease-in-out infinite;
 }
 
 @keyframes floating {
-
   0% {
     transform: translateY(0);
   }
@@ -104,6 +91,19 @@
   100% {
     transform: translateY(0);
   }
-
 }
 
+@media (max-width: 768px) {
+    .home{
+      min-height: 90vh;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .home-image img{
+      width: 270px;
+      height: 270px;
+      object-fit: cover;
+    }
+
+ }

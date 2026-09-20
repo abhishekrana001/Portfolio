@@ -9,14 +9,15 @@ function About() {
         <h2>About Me</h2>
 
         <p>
-          I am a B.Sc. IT graduate passionate about Java and backend
-          development. I enjoy building applications and REST APIs using
-          Java, Spring Boot and MySQL.
+          I am a B.Sc. IT graduate and Java Full Stack Developer passionate 
+          about building responsive and user-friendly web applications using 
+          React.js, Java, Spring Boot, REST APIs, and MySQL.
         </p>
 
         <p>
-          I am continuously improving my programming, problem-solving and
-          development skills while learning modern technologies.
+          I enjoy solving problems, developing real-world projects, 
+          and continuously improving my technical skills by learning 
+          modern technologies.
         </p>
       </div>
     </section>

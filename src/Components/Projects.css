@@ -24,6 +24,10 @@ h2 {
   margin-bottom: 15px;
   color: #f8fafc;
 }
+.project-card img{
+  height: 120px;
+  animation: floating 4s ease-in-out infinite;
+}
 
 .project-card p {
   margin-bottom: 12px;
@@ -42,4 +46,18 @@ h2 {
   color: #38bdf8;
   background-color: #1e293b;
   border-color: #38bdf8;
+}
+
+@keyframes floating {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
 }

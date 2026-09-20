@@ -1,4 +1,7 @@
 import "./Projects.css";
+import Stonegame from "../assets/Pss_logo.svg";
+import currency from "../assets/foreign-exchange.png";
+import Ticgame from "../assets/tic-tac-toe.png";
 
 function Projects() {
   return (
@@ -8,7 +11,7 @@ function Projects() {
 
       <div className="project-card">
         <h3>Stone Paper Scissors</h3>
-
+        <img src={Stonegame} alt="image" />
         <p>
           A simple interactive game developed using HTML, CSS and JavaScript.
         </p>
@@ -20,7 +23,7 @@ function Projects() {
 
       <div className="project-card">
         <h3>Currency Converter</h3>
-
+        <img src={currency} alt="image" />
         <p>
           A web application that converts currencies using JavaScript.
         </p>
@@ -32,7 +35,7 @@ function Projects() {
 
       <div className="project-card">
         <h3>Tic Tac Toe</h3>
-
+        <img src={Ticgame} alt="image" />
         <p>
           A simple browser-based Tic Tac Toe game with interactive gameplay.
         </p>
