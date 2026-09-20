@@ -1,5 +1,5 @@
 import "./Projects.css";
-import Stonegame from "../assets/Pss_logo.svg";
+import Stonegame from "../assets/PSS_logo.svg";
 import currency from "../assets/foreign-exchange.png";
 import Ticgame from "../assets/tic-tac-toe.png";
 
