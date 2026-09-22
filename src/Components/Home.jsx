@@ -1,6 +1,6 @@
 import "./Home.css";
 import resume from "../assets/My_Cv.pdf";
-import profileImg from "../assets/Profile.png";
+import profileImg from "../assets/MyImg.png";
 import { Link } from "react-router-dom";
 
 function Home() {
