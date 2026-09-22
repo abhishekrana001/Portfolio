@@ -1,6 +1,7 @@
 import "./Home.css";
 import resume from "../assets/My_Cv.pdf";
-import profileImg from "../assets/profile.png";
+import profileImg from "../assets/Profile.png";
+import { Link } from "react-router-dom";
 
 function Home() {
   return (
@@ -29,12 +30,9 @@ function Home() {
             Download Resume
           </a>
 
-          <a
-            href="#projects"
-            className="viewprojects"
-          >
+          <Link to="/projects" className="viewprojects">
             View Projects
-          </a>
+          </Link>
 
         </div>
 

@@ -14,13 +14,14 @@ function Contact() {
         </p>
 
         <div className="contact-links">
-          <a href="abhishekrana99813@gmail.com">
+          <a href="mailto:abhishekrana99813@gmail.com">
             Email Me
           </a>
 
           <a
             href="https://github.com/abhishekrana001"
             target="_blank"
+            rel="noopener noreferrer"
           >
             GitHub
           </a>
@@ -28,6 +29,7 @@ function Contact() {
           <a
             href="https://linkedin.com/in/abhishek-rana-28872a294"
             target="_blank"
+            rel="noopener noreferrer"
           >
             LinkedIn
           </a>

@@ -1,30 +1,41 @@
-import { useState } from 'react'
-import './App.css'
-import Navbar from './Components/Navbar.jsx'
-import Home from "./Components/Home.jsx";
-import About from "./Components/About.jsx";
-import Skills from "./Components/Skills.jsx";
-import Projects from "./Components/Projects.jsx";
-import Contact from "./Components/Contact.jsx";
-import Footer from "./Components/Footer.jsx";
+import "./App.css";
 
+import Navbar from "./Components/Navbar";
+import Home from "./Components/Home";
+import About from "./Components/About";
+import Skills from "./Components/Skills";
+import Projects from "./Components/Projects";
+import Contact from "./Components/Contact";
+import Footer from "./Components/Footer";
 
 function App() {
   return (
     <>
-    <Navbar/>
-    
-    <Home/>
+      <Navbar />
 
-    <About/>
+      <main>
+        <section id="home">
+          <Home />
+        </section>
 
-    <Skills/>
+        <section id="about">
+          <About />
+        </section>
 
-    <Projects/>
+        <section id="skills">
+          <Skills />
+        </section>
 
-    <Contact/>
+        <section id="projects">
+          <Projects />
+        </section>
 
-    <Footer/>
+        <section id="contact">
+          <Contact />
+        </section>
+      </main>
+
+      <Footer />
     </>
   );
 }
