@@ -57,15 +57,16 @@
   border-color: #0ea5e9;
 }
 
-.viewprojects {
+button {
   padding: 12px 22px;
+  color: white;
   border: 1px solid #94a3b8;
   background-color: #334155;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.viewprojects:hover {
+button:hover {
   color: #38bdf8;
   background-color: #1e293b;
   border-color: #38bdf8;

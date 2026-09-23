@@ -1,7 +1,23 @@
 import "./Home.css";
 import resume from "../assets/My_Cv.pdf";
 import profileImg from "../assets/MyImg.png";
-import { Link } from "react-router-dom";
+
+
+const goToSection = (section) => {
+    const element = document.getElementById(section);
+
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      window.history.pushState({}, "", `/${section}`);
+    }
+
+    setMenuOpen(false);
+  };
+
 
 function Home() {
   return (
@@ -16,10 +32,10 @@ function Home() {
         <h2>Java Full Stack Developer</h2>
 
         <p className="home-description">
-          I build responsive web applications using React.js,
-          Java, Spring Boot, REST APIs and MySQL.
+          I build scalable web applications using Java, Spring Boot, REST APIs,
+          React.js, MySQL, and modern full-stack technologies.
         </p>
-
+        
         <div className="home-buttons">
 
           <a
@@ -30,9 +46,9 @@ function Home() {
             Download Resume
           </a>
 
-          <Link to="/projects" className="viewprojects">
-            View Projects
-          </Link>
+          <button onClick={() => goToSection("projects")}>
+            Projects
+          </button>
 
         </div>
 

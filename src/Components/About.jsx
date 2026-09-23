@@ -9,14 +9,17 @@ function About() {
         <h2>About Me</h2>
 
         <p>
-          I am a B.Sc. IT graduate and Java Full Stack Developer passionate 
-          about building responsive and user-friendly web applications using 
-          React.js, Java, Spring Boot, REST APIs, and MySQL.
+          I am a B.Sc. IT graduate and Full Stack Developer with a strong 
+          interest in Java, Spring Boot, and modern web development. 
+          I have experience working with Java, Spring Boot, REST APIs, 
+          MySQL, SQL, and the MERN stack, including React.js, Node.js, 
+          Express.js, and MongoDB.
         </p>
 
         <p>
-          I enjoy solving problems, developing real-world projects, 
-          and continuously improving my technical skills by learning 
+          I also have experience in Android development using Kotlin. 
+          I enjoy building real-world projects, solving programming problems, 
+          and continuously improving my skills by learning and working with 
           modern technologies.
         </p>
       </div>

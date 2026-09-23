@@ -12,12 +12,19 @@ h2 {
 }
 
 .project-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   margin: 20px auto;
   padding: 20px;
   max-width: 400px;
   border: 1px solid #334155;
   border-radius: 10px;
   background-color: #1e293b;
+}
+
+.project-card:hover{
+  transform: translateY(-10px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border: 3px solid #562ea6;
 }
 
 .project-card h3 {
