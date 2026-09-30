@@ -1,5 +1,3 @@
-import "./App.css";
-
 import Navbar from "./Components/Navbar";
 import Home from "./Components/Home";
 import About from "./Components/About";
@@ -12,29 +10,13 @@ function App() {
   return (
     <>
       <Navbar />
-
       <main>
-        <section id="home">
-          <Home />
-        </section>
-
-        <section id="about">
-          <About />
-        </section>
-
-        <section id="skills">
-          <Skills />
-        </section>
-
-        <section id="projects">
-          <Projects />
-        </section>
-
-        <section id="contact">
-          <Contact />
-        </section>
+        <Home />
+        <About />
+        <Skills />
+        <Projects />
+        <Contact />
       </main>
-
       <Footer />
     </>
   );

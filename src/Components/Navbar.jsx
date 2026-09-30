@@ -1,118 +1,55 @@
 import { useEffect, useState } from "react";
-import "./Navbar.css";
+
+const LINKS = ["home", "about", "skills", "projects", "contact"];
 
 function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const sections = ["home", "about", "skills", "projects", "contact"];
-
-  const goToSection = (section) => {
-    const element = document.getElementById(section);
-
-    if (element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
-      window.history.pushState({}, "", `/${section}`);
-    }
-
-    setMenuOpen(false);
-  };
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("home");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const section = entry.target.id;
-
-            window.history.replaceState({}, "", `/${section}`);
-          }
-        });
-      },
-      {
-        threshold: 0.5,
-      }
+      (entries) =>
+        entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
+      { rootMargin: "-45% 0px -50% 0px" }
     );
-
-    sections.forEach((section) => {
-      const element = document.getElementById(section);
-
-      if (element) {
-        observer.observe(element);
-      }
+    LINKS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
     });
-
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
-    <nav className="navbar">
-
-      <h2 className="navbar-logo">
-        Dev_Abhishek Rana
-      </h2>
-
-      <div className="navbar-links">
-
-        <button onClick={() => goToSection("home")}>
-          Home
-        </button>
-
-        <button onClick={() => goToSection("about")}>
-          About
-        </button>
-
-        <button onClick={() => goToSection("skills")}>
-          Skills
-        </button>
-
-        <button onClick={() => goToSection("projects")}>
-          Projects
-        </button>
-
-        <button onClick={() => goToSection("contact")}>
-          Contact
-        </button>
-
-      </div>
-
+    <header className="nav">
+      <a href="#home" className="nav-logo">Abhishek Rana</a>
       <button
-        className="menu-btn"
-        onClick={() => setMenuOpen(!menuOpen)}
+        className="nav-toggle"
+        aria-label="Toggle menu"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
       >
-        ☰
+        {open ? "Close" : "Menu"}
       </button>
-
-      {menuOpen && (
-        <div className="mobile-menu">
-
-          <button onClick={() => goToSection("home")}>
-            Home
-          </button>
-
-          <button onClick={() => goToSection("about")}>
-            About
-          </button>
-
-          <button onClick={() => goToSection("skills")}>
-            Skills
-          </button>
-
-          <button onClick={() => goToSection("projects")}>
-            Projects
-          </button>
-
-          <button onClick={() => goToSection("contact")}>
-            Contact
-          </button>
-
-        </div>
-      )}
-
-    </nav>
+      <nav className={`nav-links ${open ? "is-open" : ""}`} aria-label="Main">
+        {LINKS.map((id) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            className={active === id ? "is-active" : ""}
+            aria-current={active === id ? "true" : undefined}
+            onClick={() => setOpen(false)}
+          >
+            {id}
+          </a>
+        ))}
+      </nav>
+    </header>
   );
 }
 

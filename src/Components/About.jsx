@@ -1,12 +1,8 @@
-import "./About.css";
-
 function About() {
   return (
-    <section className="about" id="about">
-      <div className="about-content">
-        <p className="section-subtitle">Get To Know Me</p>
-
-        <h2>About Me</h2>
+    <section className="section" id="about">
+      <h2>About Me</h2>
+      <div className="prose">
 
         <p>
           I am a B.Sc. IT graduate and Full Stack Developer with a strong 
