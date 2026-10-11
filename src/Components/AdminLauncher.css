@@ -1,0 +1,86 @@
+.admin-launcher-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999;
+}
+
+.admin-launcher-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-launcher-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 8px 24px var(--accent-glow);
+  color: var(--accent-primary);
+}
+
+.admin-launcher-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.launcher-icon {
+  transition: transform var(--transition-fast);
+}
+
+.admin-launcher-btn:hover .launcher-icon {
+  transform: rotate(15deg);
+}
+
+.admin-status-indicator {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bg-card);
+}
+
+.admin-status-indicator.online {
+  background-color: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.admin-status-indicator.offline {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.admin-launcher-text {
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 640px) {
+  .admin-launcher-container {
+    bottom: 16px;
+    right: 16px;
+  }
+  .admin-launcher-text {
+    display: none;
+  }
+  .admin-launcher-btn {
+    padding: 10px;
+    border-radius: 50%;
+  }
+}

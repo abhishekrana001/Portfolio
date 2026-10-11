@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Sun, Moon, Menu, X } from "lucide-react";
+import { usePortfolio } from "../context/PortfolioContext";
 import "./Navbar.css";
 
 const LINKS = ["home", "about", "skills", "projects", "contact"];
 
 function Navbar({ theme, toggleTheme }) {
+  const { data } = usePortfolio();
+  const brandName = data?.footer?.brandName || data?.home?.firstName || "Abhishek";
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("home");
 
@@ -39,7 +42,7 @@ function Navbar({ theme, toggleTheme }) {
     <header className="nav-header">
       <div className="nav-container">
         <a href="#home" className="nav-logo" aria-label="Abhishek Rana Portfolio">
-          Abhishek<span className="nav-logo-accent">.</span>
+          {brandName}<span className="nav-logo-accent">.</span>
         </a>
         <nav className={`nav-links ${open ? "is-open" : ""}`} aria-label="Main Navigation">
           {LINKS.map((id) => (

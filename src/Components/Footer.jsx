@@ -1,10 +1,15 @@
 import { ArrowUp, Mail } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./Icons";
+import { usePortfolio } from "../context/PortfolioContext";
 import "./Footer.css";
 
 const NAV_LINKS = ["home", "about", "skills", "projects", "contact"];
 
 function Footer() {
+  const { data } = usePortfolio();
+  const footerData = data?.footer || {};
+  const homeData = data?.home || {};
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -12,16 +17,23 @@ function Footer() {
     });
   };
 
+  const currentYear = new Date().getFullYear();
+  const copyrightText = footerData.copyrightNote
+    ? footerData.copyrightNote.replace("{year}", currentYear)
+    : `Abhishek Rana. All rights reserved. Built with React & Vite.`;
+
   return (
     <footer className="footer-wrapper">
       <div className="footer-container">
         <div className="footer-top">
           <div className="footer-brand">
             <span className="footer-logo">
-              Abhishek<span className="footer-logo-accent">.</span>
+              {footerData.brandName || "Abhishek"}
+              <span className="footer-logo-accent">.</span>
             </span>
             <p className="footer-tagline">
-              Java Full Stack & Android Developer • Building high-impact software
+              {footerData.tagline ||
+                "Java Full Stack & Android Developer • Building high-impact software"}
             </p>
           </div>
 
@@ -36,36 +48,42 @@ function Footer() {
 
         <div className="footer-bottom">
           <p className="footer-copy">
-            © {new Date().getFullYear()} Abhishek Rana. All rights reserved. Built with React & Vite.
+            © {currentYear} {copyrightText}
           </p>
 
           <div className="footer-right-actions">
             <div className="hero-socials" style={{ gap: "0.75rem" }}>
-              <a
-                href="https://github.com/abhishekrana001"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-social-link"
-                aria-label="GitHub profile"
-              >
-                <GithubIcon size={18} />
-              </a>
-              <a
-                href="https://linkedin.com/in/abhishekrana99813"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-social-link"
-                aria-label="LinkedIn profile"
-              >
-                <LinkedinIcon size={18} />
-              </a>
-              <a
-                href="mailto:abhishekrana99813@gmail.com"
-                className="footer-social-link"
-                aria-label="Email Abhishek Rana"
-              >
-                <Mail size={18} />
-              </a>
+              {homeData.socials?.github && (
+                <a
+                  href={homeData.socials.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social-link"
+                  aria-label="GitHub profile"
+                >
+                  <GithubIcon size={18} />
+                </a>
+              )}
+              {homeData.socials?.linkedin && (
+                <a
+                  href={homeData.socials.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social-link"
+                  aria-label="LinkedIn profile"
+                >
+                  <LinkedinIcon size={18} />
+                </a>
+              )}
+              {homeData.socials?.email && (
+                <a
+                  href={`mailto:${homeData.socials.email}`}
+                  className="footer-social-link"
+                  aria-label="Email Abhishek Rana"
+                >
+                  <Mail size={18} />
+                </a>
+              )}
             </div>
 
             <button
