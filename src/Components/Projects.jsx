@@ -107,7 +107,6 @@ function Projects() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`View ${p.name} live demo`}
-                      style={{ marginLeft: "auto" }}
                     >
                       <Globe size={15} />
                       <span>Live Demo</span>
