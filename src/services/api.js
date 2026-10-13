@@ -1,7 +1,22 @@
-const BASE = import.meta.env.VIT_API_URL || "/api";
+const rawEnv = (
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VIT_API_URL ||
+  ""
+).trim().replace(/\/+$/, "");
+
+// Normalize API_BASE and SERVER_ORIGIN
+export const API_BASE = rawEnv
+  ? (rawEnv.endsWith("/api") ? rawEnv : `${rawEnv}/api`)
+  : "/api";
+
+export const SERVER_ORIGIN = rawEnv
+  ? (rawEnv.endsWith("/api") ? rawEnv.slice(0, -4) : rawEnv)
+  : "";
+
+const BASE = API_BASE;
 
 const request = async (url, options = {}) => {
-  const pin = localStorage.getItem("adminPin");
+  const pin = localStorage.getItem("adminPin") || localStorage.getItem("portfolio_admin_token");
   const headers = { ...options.headers };
   if (pin) headers["x-admin-pin"] = pin;
 
@@ -28,6 +43,9 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     }),
+  getMessages: () => request("/messages"),
+  deleteMessage: (id) =>
+    request(`/messages/${id}`, { method: "DELETE" }),
 
   // Admin
   login: (pin) =>

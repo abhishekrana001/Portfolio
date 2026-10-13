@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./Icons";
 import { usePortfolio } from "../context/PortfolioContext";
+import { api } from "../services/api";
 import "./Contact.css";
 
 function Contact() {
@@ -50,18 +51,9 @@ function Contact() {
     setSendSuccess(null);
 
     try {
-      const res = await fetch("/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(msgForm),
-      });
-
-      if (res.ok) {
-        setSendSuccess("Message received! Saved to MongoDB.");
-        setMsgForm({ name: "", email: "", message: "" });
-      } else {
-        throw new Error("Server error");
-      }
+      await api.sendMessage(msgForm);
+      setSendSuccess("Message received! Saved to MongoDB.");
+      setMsgForm({ name: "", email: "", message: "" });
     } catch {
       setSendSuccess("Direct mail option ready below.");
     } finally {

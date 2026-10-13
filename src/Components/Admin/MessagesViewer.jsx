@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MessageSquare, Trash2, Mail, Calendar, RefreshCw } from "lucide-react";
+import { api } from "../../services/api";
 
 function MessagesViewer() {
   const [messages, setMessages] = useState([]);
@@ -10,12 +11,7 @@ function MessagesViewer() {
     setLoading(true);
     setError(null);
     try {
-      const pin = localStorage.getItem("adminPin") || "1234";
-      const res = await fetch("/api/messages", {
-        headers: { "x-admin-pin": pin },
-      });
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      const data = await res.json();
+      const data = await api.getMessages();
       setMessages(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.message || "Failed to load messages from MongoDB");
@@ -31,14 +27,8 @@ function MessagesViewer() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this message?")) return;
     try {
-      const pin = localStorage.getItem("adminPin") || "1234";
-      const res = await fetch(`/api/messages/${id}`, {
-        method: "DELETE",
-        headers: { "x-admin-pin": pin },
-      });
-      if (res.ok) {
-        setMessages((prev) => prev.filter((m) => m._id !== id));
-      }
+      await api.deleteMessage(id);
+      setMessages((prev) => prev.filter((m) => m._id !== id));
     } catch (err) {
       alert("Failed to delete: " + err.message);
     }

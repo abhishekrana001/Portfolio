@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import { defaultPortfolioData } from "../data/defaultPortfolioData";
+import { API_BASE } from "../services/api";
 
-const API_BASE = import.meta.env.VIT_API_URL || "/api";
 const PortfolioContext = createContext(null);
 
 const STORAGE_KEY = "portfolio_local_data_v1";
@@ -261,13 +261,14 @@ export function PortfolioProvider({ children }) {
      ─────────────────────────────────────────────── */
   const login = async (enteredPin) => {
     try {
-      const resData = await safeFetch("/api/auth/verify", {
+      const resData = await safeFetch(`${API_BASE}/auth/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin: enteredPin }),
       });
 
       localStorage.setItem(TOKEN_KEY, resData.token || "admin-authenticated");
+      localStorage.setItem("adminPin", enteredPin);
       setIsAuthenticated(true);
       return { success: true };
     } catch (err) {
@@ -278,6 +279,7 @@ export function PortfolioProvider({ children }) {
     const currentPin = data?.security?.adminPin || "1234";
     if (enteredPin === currentPin) {
       localStorage.setItem(TOKEN_KEY, "admin-authenticated-offline");
+      localStorage.setItem("adminPin", enteredPin);
       setIsAuthenticated(true);
       return { success: true };
     }
@@ -287,6 +289,7 @@ export function PortfolioProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("adminPin");
     setIsAuthenticated(false);
   };
 

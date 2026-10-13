@@ -1,4 +1,5 @@
 import React from "react";
+import { SERVER_ORIGIN } from "../services/api";
 import defaultProfileImg from "../assets/MyImg.webp";
 import defaultResumePdf from "../assets/My_Cv.pdf";
 import airbnbImg from "../assets/airbnb.png";
@@ -63,11 +64,19 @@ export const AVAILABLE_ICONS = {
 
 export const AVAILABLE_ICON_NAMES = Object.keys(AVAILABLE_ICONS);
 
+function formatMediaUrl(url) {
+  if (!url || typeof url !== "string") return url;
+  if (url.startsWith("/uploads/") && SERVER_ORIGIN) {
+    return `${SERVER_ORIGIN}${url}`;
+  }
+  return url;
+}
+
 export function resolveProjectImage(project) {
   if (!project) return airbnbImg;
-  if (project.img) return project.img;
+  if (project.img) return formatMediaUrl(project.img);
   if (project.imageUrl && typeof project.imageUrl === "string" && project.imageUrl.trim() !== "") {
-    return project.imageUrl;
+    return formatMediaUrl(project.imageUrl);
   }
   if (project.imageKey && PROJECT_IMAGES[project.imageKey]) {
     return PROJECT_IMAGES[project.imageKey];
@@ -77,14 +86,14 @@ export function resolveProjectImage(project) {
 
 export function resolveProfileImage(customUrl) {
   if (customUrl && typeof customUrl === "string" && customUrl.trim() !== "") {
-    return customUrl;
+    return formatMediaUrl(customUrl);
   }
   return defaultProfileImg;
 }
 
 export function resolveResumeUrl(customUrl) {
   if (customUrl && typeof customUrl === "string" && customUrl.trim() !== "") {
-    return customUrl;
+    return formatMediaUrl(customUrl);
   }
   return defaultResumePdf;
 }

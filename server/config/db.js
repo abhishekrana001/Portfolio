@@ -1,13 +1,14 @@
 import mongoose from 'mongoose';
 
 export const connectDB = async () => {
-  if (!process.env.MONGO_URI) {
-    console.warn('⚠️ No MONGO_URI specified in environment. MongoDB features will run in offline mode.');
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  if (!uri) {
+    console.warn('⚠️ No MONGO_URI or MONGODB_URI specified in environment. MongoDB features will run in offline mode.');
     return false;
   }
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 3000,
+    const conn = await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
     });
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
     return true;
