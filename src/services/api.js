@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || "/api";
+const BASE = import.meta.env.VIT_API_URL || "/api";
 
 const request = async (url, options = {}) => {
   const pin = localStorage.getItem("adminPin");
