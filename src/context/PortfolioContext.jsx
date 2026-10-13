@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 import PropTypes from "prop-types";
 import { defaultPortfolioData } from "../data/defaultPortfolioData";
 
+const API_BASE = import.meta.env.VIT_API_URL || "/api";
 const PortfolioContext = createContext(null);
 
 const STORAGE_KEY = "portfolio_local_data_v1";
@@ -128,7 +129,7 @@ export function PortfolioProvider({ children }) {
      ─────────────────────────────────────────────── */
   const fetchFromServer = useCallback(async () => {
     try {
-      const serverData = await safeFetch("/api/portfolio");
+      const serverData = await safeFetch(`${API_BASE}/portfolio`);
 
       if (serverData && typeof serverData === "object" && serverData.home) {
         const sanitized = sanitizeAndMergePortfolioData(serverData);
@@ -148,7 +149,7 @@ export function PortfolioProvider({ children }) {
     let ignore = false;
     const load = async () => {
       try {
-        const serverData = await safeFetch("/api/portfolio");
+        const serverData = await safeFetch(`${API_BASE}/portfolio`);
         if (!ignore && serverData && typeof serverData === "object" && serverData.home) {
           const sanitized = sanitizeAndMergePortfolioData(serverData);
           setData(sanitized);
@@ -183,7 +184,7 @@ export function PortfolioProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
 
     try {
-      await safeFetch("/api/portfolio", {
+      await safeFetch(`${API_BASE}/portfolio`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sanitized),
@@ -230,7 +231,7 @@ export function PortfolioProvider({ children }) {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await safeFetch("/api/upload", {
+      const result = await safeFetch(`${API_BASE}/upload`, {
         method: "POST",
         body: formData,
       });
