@@ -11,7 +11,8 @@ function AdminLogin({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!pin.trim()) {
+    const cleanPin = pin.trim();
+    if (!cleanPin) {
       setError("Please enter your PIN");
       return;
     }
@@ -19,11 +20,18 @@ function AdminLogin({ onLogin }) {
     setIsSubmitting(true);
     setError("");
 
-    const result = await onLogin(pin.trim());
-    setIsSubmitting(false);
+    try {
+      const result = await onLogin(cleanPin);
+      setIsSubmitting(false);
 
-    if (!result?.success) {
-      setError(result?.message || "Incorrect PIN code. Default is 1234.");
+      if (result?.success) {
+        localStorage.setItem("adminPin", cleanPin);
+      } else {
+        setError(result?.message || "Incorrect PIN code. Default is 1234.");
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      setError(err?.message || "Login failed. Please check backend connection.");
     }
   };
 

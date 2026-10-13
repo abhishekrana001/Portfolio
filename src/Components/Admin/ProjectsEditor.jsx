@@ -10,7 +10,6 @@ import {
   Check,
   X,
   Search,
-  Globe,
   FolderGit2,
 } from "lucide-react";
 import { defaultPortfolioData } from "../../data/defaultPortfolioData";
@@ -105,7 +104,7 @@ function ProjectsEditor({ initialData, onSave, onUploadFile, isSaving }) {
       normTags = project.tags.split(/[,|]/).map((t) => t.trim()).filter(Boolean);
     }
     setProjectForm({
-      id: project.id || "p-" + Date.now(),
+      id: project.id || "p-item",
       name: project.name || "",
       category: project.category || "web",
       imageKey: project.imageKey || "",

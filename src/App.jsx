@@ -38,7 +38,9 @@ function App() {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("portfolio-theme");
     if (saved) return saved;
-    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    return window.matchMedia("(prefers-color-scheme: light)").matches
+      ? "light"
+      : "dark";
   });
 
   useEffect(() => {
@@ -54,11 +56,20 @@ function App() {
     <PortfolioProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public portfolio */}
           <Route
             path="/"
             element={<PortfolioView theme={theme} toggleTheme={toggleTheme} />}
           />
+
+          {/* Admin Studio */}
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route
+            path="/admin/dashboard"
+            element={<Navigate to="/admin" replace />}
+          />
+
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

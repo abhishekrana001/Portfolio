@@ -18,35 +18,50 @@ function Projects() {
     { key: "tools", label: "Games & Utilities" },
   ];
 
-  const githubBase = projectsData.githubBase || "https://github.com/abhishekrana001/";
+  const githubBase =
+    projectsData.githubBase || "https://github.com/abhishekrana001/";
   const items =
-    projectsData.items && Array.isArray(projectsData.items) && projectsData.items.length > 0
+    projectsData.items &&
+    Array.isArray(projectsData.items) &&
+    projectsData.items.length > 0
       ? projectsData.items
       : defaultPortfolioData.projects.items;
 
   const filteredProjects =
     activeCategory === "all"
       ? items
-      : items.filter((p) => p.category?.toLowerCase() === activeCategory?.toLowerCase());
+      : items.filter(
+          (p) => p.category?.toLowerCase() === activeCategory?.toLowerCase()
+        );
 
   return (
     <section className="section-container projects-section" id="projects">
       <div className="section-header">
-        <span className="section-tag">{projectsData.sectionTag || "Featured Work"}</span>
-        <h2 className="section-title">{projectsData.sectionTitle || "Projects Portfolio"}</h2>
+        <span className="section-tag">
+          {projectsData.sectionTag || "Featured Work"}
+        </span>
+        <h2 className="section-title">
+          {projectsData.sectionTitle || "Projects Portfolio"}
+        </h2>
         <p className="section-subtitle">
           {projectsData.sectionSubtitle ||
             "A showcase of full stack web applications, native Android projects, and interactive tools built with clean code and modern technologies."}
         </p>
       </div>
 
-      <div className="projects-filter-bar" role="tablist" aria-label="Project Categories">
+      <div
+        className="projects-filter-bar"
+        role="tablist"
+        aria-label="Project Categories"
+      >
         {categories.map((cat) => (
           <button
             key={cat.key}
             role="tab"
             aria-selected={activeCategory === cat.key}
-            className={`filter-tab ${activeCategory === cat.key ? "is-active" : ""}`}
+            className={`filter-tab ${
+              activeCategory === cat.key ? "is-active" : ""
+            }`}
             onClick={() => setActiveCategory(cat.key)}
           >
             {cat.label}

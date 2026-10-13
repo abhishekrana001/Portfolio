@@ -74,9 +74,37 @@ function sanitizeAndMergePortfolioData(incoming) {
   };
 }
 
+/* ─────────────────────────────────────────────────
+   SAFE FETCH HELPER
+   HTML response aane pe crash nahi karega
+   ───────────────────────────────────────────────── */
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, options);
+
+  // HTML response detect karo (backend down hone pe aata hai)
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(
+      `Server ne JSON nahi bheja (content-type: ${contentType || "unknown"}). Backend probably down hai.`
+    );
+  }
+
+  if (!res.ok) {
+    let errorMsg = `HTTP ${res.status}`;
+    try {
+      const errData = await res.json();
+      errorMsg = errData.error || errData.message || errorMsg;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  return res.json();
+}
+
 export function PortfolioProvider({ children }) {
   const [data, setData] = useState(() => {
-    // Attempt local storage cache on initial render for instant load
     try {
       const cached = localStorage.getItem(STORAGE_KEY);
       if (cached) {
@@ -95,23 +123,21 @@ export function PortfolioProvider({ children }) {
     return Boolean(localStorage.getItem(TOKEN_KEY));
   });
 
-  // Fetch from server on mount
+  /* ───────────────────────────────────────────────
+     FETCH FROM SERVER — now with safe parsing
+     ─────────────────────────────────────────────── */
   const fetchFromServer = useCallback(async () => {
     try {
-      const res = await fetch("/api/portfolio");
-      if (res.ok) {
-        const serverData = await res.json();
-        if (serverData && typeof serverData === "object" && serverData.home) {
-          const sanitized = sanitizeAndMergePortfolioData(serverData);
-          setData(sanitized);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
-          setIsBackendConnected(true);
-        }
-      } else {
-        setIsBackendConnected(false);
+      const serverData = await safeFetch("/api/portfolio");
+
+      if (serverData && typeof serverData === "object" && serverData.home) {
+        const sanitized = sanitizeAndMergePortfolioData(serverData);
+        setData(sanitized);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
       }
+      setIsBackendConnected(true);
     } catch (err) {
-      console.warn("Backend server not reached, using offline cached data:", err);
+      console.warn("⚠️ Backend not reached, using offline cached data:", err.message);
       setIsBackendConnected(false);
     } finally {
       setIsLoading(false);
@@ -119,10 +145,37 @@ export function PortfolioProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetchFromServer();
-  }, [fetchFromServer]);
+    let ignore = false;
+    const load = async () => {
+      try {
+        const serverData = await safeFetch("/api/portfolio");
+        if (!ignore && serverData && typeof serverData === "object" && serverData.home) {
+          const sanitized = sanitizeAndMergePortfolioData(serverData);
+          setData(sanitized);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+          setIsBackendConnected(true);
+        }
+      } catch (err) {
+        if (!ignore) {
+          console.warn("⚠️ Backend not reached, using offline cached data:", err.message);
+          setIsBackendConnected(false);
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    };
 
-  // Save complete portfolio
+    load();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  /* ───────────────────────────────────────────────
+     SAVE PORTFOLIO
+     ─────────────────────────────────────────────── */
   const savePortfolio = async (newData) => {
     setIsSaving(true);
     const sanitized = sanitizeAndMergePortfolioData(newData);
@@ -130,37 +183,30 @@ export function PortfolioProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
 
     try {
-      const res = await fetch("/api/portfolio", {
+      await safeFetch("/api/portfolio", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sanitized),
       });
 
-      if (res.ok) {
-        setIsBackendConnected(true);
-        setIsSaving(false);
-        return { success: true, message: "Saved to server successfully!" };
-      } else {
-        setIsSaving(false);
-        return {
-          success: true,
-          offline: true,
-          message: "Saved locally (Server error: changes will persist in browser)",
-        };
-      }
+      setIsBackendConnected(true);
+      setIsSaving(false);
+      return { success: true, message: "Saved to server successfully!" };
     } catch (err) {
-      console.warn("Server unavailable, changes saved to localStorage:", err);
+      console.warn("⚠️ Server unavailable, saved to localStorage:", err.message);
       setIsBackendConnected(false);
       setIsSaving(false);
       return {
         success: true,
         offline: true,
-        message: "Saved locally (Offline mode: server not connected)",
+        message: "Saved locally (offline mode: server not connected)",
       };
     }
   };
 
-  // Update specific section
+  /* ───────────────────────────────────────────────
+     UPDATE SECTION
+     ─────────────────────────────────────────────── */
   const updateSection = async (sectionName, sectionData) => {
     const updated = {
       ...data,
@@ -169,59 +215,65 @@ export function PortfolioProvider({ children }) {
     return await savePortfolio(updated);
   };
 
-  // Reset to original defaults
+  /* ───────────────────────────────────────────────
+     RESET
+     ─────────────────────────────────────────────── */
   const resetToDefaults = async () => {
     return await savePortfolio(defaultPortfolioData);
   };
 
-  // Upload file (images or documents)
+  /* ───────────────────────────────────────────────
+     UPLOAD FILE
+     ─────────────────────────────────────────────── */
   const uploadFile = async (file) => {
     try {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/upload", {
+      const result = await safeFetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (res.ok) {
-        const result = await res.json();
-        return { success: true, url: result.url, filename: result.filename };
-      }
+      return { success: true, url: result.url, filename: result.filename };
     } catch (err) {
-      console.warn("Could not upload to server, falling back to base64 DataURL:", err);
+      console.warn("Could not upload to server, falling back to base64:", err.message);
     }
 
-    // Fallback: Convert to Base64 Data URL so it saves locally inside the JSON/localStorage
+    // Fallback: Convert to Base64 Data URL (saves locally)
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        resolve({ success: true, url: reader.result, filename: file.name, fallback: true });
+        resolve({
+          success: true,
+          url: reader.result,
+          filename: file.name,
+          fallback: true,
+        });
       };
       reader.readAsDataURL(file);
     });
   };
 
-  // Verify PIN
+  /* ───────────────────────────────────────────────
+     LOGIN (PIN)
+     ─────────────────────────────────────────────── */
   const login = async (enteredPin) => {
     try {
-      const res = await fetch("/api/auth/verify", {
+      const resData = await safeFetch("/api/auth/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin: enteredPin }),
       });
-      if (res.ok) {
-        const resData = await res.json();
-        localStorage.setItem(TOKEN_KEY, resData.token || "admin-authenticated");
-        setIsAuthenticated(true);
-        return { success: true };
-      }
+
+      localStorage.setItem(TOKEN_KEY, resData.token || "admin-authenticated");
+      setIsAuthenticated(true);
+      return { success: true };
     } catch (err) {
-      console.warn("Using offline auth check:", err);
+      console.warn("Server auth failed, trying offline check:", err.message);
     }
 
-    // Local fallback check
+    // Offline fallback
     const currentPin = data?.security?.adminPin || "1234";
     if (enteredPin === currentPin) {
       localStorage.setItem(TOKEN_KEY, "admin-authenticated-offline");
@@ -237,7 +289,9 @@ export function PortfolioProvider({ children }) {
     setIsAuthenticated(false);
   };
 
-  // Update PIN
+  /* ───────────────────────────────────────────────
+     UPDATE PIN
+     ─────────────────────────────────────────────── */
   const updatePin = async (oldPin, newPin) => {
     const currentPin = data?.security?.adminPin || "1234";
     if (oldPin !== currentPin) {
@@ -258,20 +312,24 @@ export function PortfolioProvider({ children }) {
     return await savePortfolio(updatedData);
   };
 
-  // Export JSON file
+  /* ───────────────────────────────────────────────
+     EXPORT / IMPORT JSON
+     ─────────────────────────────────────────────── */
   const exportDataJson = () => {
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(
       JSON.stringify(data, null, 2)
     )}`;
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", jsonString);
-    downloadAnchor.setAttribute("download", `portfolio-backup-${new Date().toISOString().slice(0, 10)}.json`);
+    downloadAnchor.setAttribute(
+      "download",
+      `portfolio-backup-${new Date().toISOString().slice(0, 10)}.json`
+    );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
   };
 
-  // Import JSON file
   const importDataJson = async (jsonContent) => {
     try {
       const parsed = JSON.parse(jsonContent);
