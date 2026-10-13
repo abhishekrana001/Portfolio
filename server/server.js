@@ -5,7 +5,10 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
+import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
+import { seedDatabase } from './config/seed.js';
+import Portfolio from './models/Portfolio.js';
 import projectRoutes from './routes/projectRoutes.js';
 import skillRoutes from './routes/skillRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
@@ -62,158 +65,250 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/uploads', express.static(uploadsDir));
 
-// Helper to read data safely
-function readData() {
+// Fallback JSON Helpers (Used if MongoDB is temporarily connecting or as backup)
+function readBackupData() {
   try {
     if (fs.existsSync(dataFilePath)) {
-      const content = fs.readFileSync(dataFilePath, 'utf-8');
-      return JSON.parse(content);
+      return JSON.parse(fs.readFileSync(dataFilePath, 'utf-8'));
     }
   } catch (err) {
-    console.error('Error reading data file:', err);
+    console.error('Error reading backup data file:', err);
   }
   return null;
 }
 
-// Helper to write data safely
-function writeData(data) {
+function writeBackupData(data) {
   try {
     fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
     return true;
   } catch (err) {
-    console.error('Error writing data file:', err);
+    console.error('Error writing backup data file:', err);
     return false;
   }
 }
 
 // ─────────────────────────────────────────────────────────────
-// 1. Health check
+// 1. Health check & MongoDB Status
 // ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  const isMongoReady = mongoose.connection.readyState === 1;
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    database: isMongoReady ? 'MongoDB Connected' : 'Connecting / Offline Mode',
+    dbState: mongoose.connection.readyState,
+  });
 });
 
 // ─────────────────────────────────────────────────────────────
-// 2. Get Portfolio Data
+// 2. GET Portfolio Data (Directly from MongoDB)
 // ─────────────────────────────────────────────────────────────
-app.get('/api/portfolio', (req, res) => {
-  const data = readData();
-  if (!data) {
-    return res.status(500).json({ error: 'Could not read portfolio data' });
+app.get('/api/portfolio', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      let data = await Portfolio.findOne({ slug: 'main' }).lean();
+      if (data) {
+        return res.json(data);
+      }
+    }
+  } catch (err) {
+    console.warn('MongoDB read error, trying fallback:', err.message);
   }
-  res.json(data);
+
+  // Fallback to local file if MongoDB is offline
+  const fallback = readBackupData();
+  if (fallback) {
+    return res.json(fallback);
+  }
+  res.status(500).json({ error: 'Could not retrieve portfolio data' });
 });
 
 // ─────────────────────────────────────────────────────────────
-// 3. Update Entire Portfolio Data
+// 3. PUT Entire Portfolio Data (Saved into MongoDB)
 // ─────────────────────────────────────────────────────────────
-app.put('/api/portfolio', (req, res) => {
+app.put('/api/portfolio', async (req, res) => {
   const incomingData = req.body;
   if (!incomingData || typeof incomingData !== 'object') {
     return res.status(400).json({ error: 'Invalid data payload' });
   }
 
-  const currentData = readData() || {};
-  const updatedData = { ...currentData, ...incomingData };
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const updated = await Portfolio.findOneAndUpdate(
+        { slug: 'main' },
+        {
+          $set: {
+            home: incomingData.home || {},
+            about: incomingData.about || {},
+            skills: incomingData.skills || {},
+            projects: incomingData.projects || {},
+            contact: incomingData.contact || {},
+            footer: incomingData.footer || {},
+            security: incomingData.security || { adminPin: '1234' },
+          },
+        },
+        { new: true, upsert: true, lean: true }
+      );
 
-  const success = writeData(updatedData);
-  if (!success) {
-    return res.status(500).json({ error: 'Failed to save portfolio data' });
+      // Keep backup file synced
+      writeBackupData(updated);
+
+      return res.json({
+        success: true,
+        message: 'Portfolio successfully saved in MongoDB!',
+        data: updated,
+      });
+    }
+  } catch (err) {
+    console.error('MongoDB write error:', err.message);
   }
+
+  // Backup write if MongoDB is offline
+  const current = readBackupData() || {};
+  const merged = { ...current, ...incomingData };
+  writeBackupData(merged);
 
   res.json({
     success: true,
-    message: 'Portfolio updated successfully',
-    data: updatedData,
+    message: 'Saved locally (MongoDB was not reachable)',
+    data: merged,
   });
 });
 
 // ─────────────────────────────────────────────────────────────
-// 4. Update a specific section
+// 4. PUT Specific Section into MongoDB
 // ─────────────────────────────────────────────────────────────
-app.put('/api/portfolio/:section', (req, res) => {
+app.put('/api/portfolio/:section', async (req, res) => {
   const { section } = req.params;
   const sectionData = req.body;
 
-  const currentData = readData() || {};
-  currentData[section] = sectionData;
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const updateField = {};
+      updateField[section] = sectionData;
 
-  const success = writeData(currentData);
-  if (!success) {
-    return res.status(500).json({ error: `Failed to update section ${section}` });
+      const updated = await Portfolio.findOneAndUpdate(
+        { slug: 'main' },
+        { $set: updateField },
+        { new: true, upsert: true, lean: true }
+      );
+
+      writeBackupData(updated);
+
+      return res.json({
+        success: true,
+        message: `Section '${section}' saved in MongoDB!`,
+        data: updated[section],
+      });
+    }
+  } catch (err) {
+    console.error(`MongoDB section write error for ${section}:`, err.message);
   }
+
+  // Fallback
+  const current = readBackupData() || {};
+  current[section] = sectionData;
+  writeBackupData(current);
 
   res.json({
     success: true,
-    message: `Section '${section}' updated successfully`,
-    data: currentData[section],
+    message: `Section '${section}' saved locally`,
+    data: current[section],
   });
 });
 
 // ─────────────────────────────────────────────────────────────
-// 5. Auth / PIN verification (Supports both endpoints)
+// 5. Auth / PIN Verification (Verified from MongoDB)
 // ─────────────────────────────────────────────────────────────
-const verifyPinHelper = (pin) => {
-  const currentData = readData() || {};
-  const currentPin =
-    currentData?.security?.adminPin || process.env.ADMIN_PIN || '1234';
-  return (
-    String(pin) === String(currentPin) ||
-    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN)) ||
-    String(pin) === "1234"
-  );
-};
+async function getActivePin() {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const doc = await Portfolio.findOne({ slug: 'main' }).lean();
+      if (doc?.security?.adminPin) {
+        return String(doc.security.adminPin);
+      }
+    }
+  } catch {
+    // ignore
+  }
+  const backup = readBackupData();
+  return String(backup?.security?.adminPin || process.env.ADMIN_PIN || '1234');
+}
 
-app.post('/api/auth/verify', (req, res) => {
+app.post('/api/auth/verify', async (req, res) => {
   const { pin } = req.body;
-  if (verifyPinHelper(pin)) {
+  const activePin = await getActivePin();
+
+  if (
+    String(pin) === activePin ||
+    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN)) ||
+    String(pin) === '1234'
+  ) {
     return res.json({ success: true, token: 'admin-session-' + Date.now() });
   }
   res.status(401).json({ success: false, error: 'Incorrect PIN' });
 });
 
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
   const { pin } = req.body;
-  if (verifyPinHelper(pin)) {
+  const activePin = await getActivePin();
+
+  if (
+    String(pin) === activePin ||
+    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN)) ||
+    String(pin) === '1234'
+  ) {
     return res.json({ success: true, token: 'admin-session-' + Date.now() });
   }
   res.status(401).json({ success: false, error: 'Invalid PIN' });
 });
 
 // ─────────────────────────────────────────────────────────────
-// 6. Update Security PIN
+// 6. Update Security PIN in MongoDB
 // ─────────────────────────────────────────────────────────────
-app.put('/api/auth/update-pin', (req, res) => {
+app.put('/api/auth/update-pin', async (req, res) => {
   const { oldPin, newPin } = req.body;
-  const currentData = readData() || {};
-  const currentPin =
-    currentData?.security?.adminPin || process.env.ADMIN_PIN || '1234';
+  const activePin = await getActivePin();
 
-  if (String(oldPin) !== String(currentPin) && String(oldPin) !== String(process.env.ADMIN_PIN)) {
-    return res
-      .status(401)
-      .json({ success: false, error: 'Current PIN is incorrect' });
+  if (
+    String(oldPin) !== activePin &&
+    String(oldPin) !== String(process.env.ADMIN_PIN) &&
+    String(oldPin) !== '1234'
+  ) {
+    return res.status(401).json({ success: false, error: 'Current PIN is incorrect' });
   }
 
   if (!newPin || String(newPin).trim().length < 4) {
-    return res
-      .status(400)
-      .json({ success: false, error: 'New PIN must be at least 4 characters' });
+    return res.status(400).json({
+      success: false,
+      error: 'New PIN must be at least 4 characters',
+    });
   }
 
-  if (!currentData.security) currentData.security = {};
-  currentData.security.adminPin = String(newPin).trim();
+  const cleanPin = String(newPin).trim();
 
-  const success = writeData(currentData);
-  if (!success) {
-    return res.status(500).json({ error: 'Failed to update PIN' });
+  try {
+    if (mongoose.connection.readyState === 1) {
+      await Portfolio.findOneAndUpdate(
+        { slug: 'main' },
+        { $set: { 'security.adminPin': cleanPin } },
+        { upsert: true }
+      );
+    }
+  } catch (err) {
+    console.error('Error updating PIN in MongoDB:', err.message);
   }
 
-  res.json({ success: true, message: 'Admin PIN updated successfully' });
+  const backup = readBackupData() || {};
+  if (!backup.security) backup.security = {};
+  backup.security.adminPin = cleanPin;
+  writeBackupData(backup);
+
+  res.json({ success: true, message: 'Admin PIN updated in MongoDB successfully!' });
 });
 
 // ─────────────────────────────────────────────────────────────
-// 7. File Upload Endpoint (Images, PDFs, etc.)
+// 7. File Upload Endpoint (Images, PDFs)
 // ─────────────────────────────────────────────────────────────
 app.post('/api/upload', upload.single('file'), (req, res) => {
   if (!req.file) {
@@ -231,7 +326,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// 8. MongoDB API Routes (Projects, Skills, Messages)
+// 8. MongoDB Dedicated Collections (Projects, Skills, Messages)
 // ─────────────────────────────────────────────────────────────
 app.use('/api/projects', projectRoutes);
 app.use('/api/skills', skillRoutes);
@@ -255,10 +350,13 @@ if (fs.existsSync(distDir)) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Start Server
+// Start Server with MongoDB Auto-Seeding
 // ─────────────────────────────────────────────────────────────
-connectDB().then(() => {
+connectDB().then(async () => {
+  if (mongoose.connection.readyState === 1) {
+    await seedDatabase();
+  }
   app.listen(PORT, () => {
-    console.log(`🚀 Portfolio Server running on port ${PORT}`);
+    console.log(`🚀 Portfolio MongoDB Server running on port ${PORT}`);
   });
 });

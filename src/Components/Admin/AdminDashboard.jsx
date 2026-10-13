@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   Radio,
+  MessageSquare,
 } from "lucide-react";
 import { usePortfolio } from "../../context/PortfolioContext";
 import AdminLogin from "./AdminLogin";
@@ -25,6 +26,7 @@ import ProjectsEditor from "./ProjectsEditor";
 import ContactEditor from "./ContactEditor";
 import FooterEditor from "./FooterEditor";
 import SettingsEditor from "./SettingsEditor";
+import MessagesViewer from "./MessagesViewer";
 import AdminErrorBoundary from "./AdminErrorBoundary";
 import "./AdminDashboard.css";
 
@@ -34,6 +36,7 @@ const TABS = [
   { id: "skills", label: "Technical Skills", icon: Wrench },
   { id: "projects", label: "Projects Portfolio", icon: Briefcase },
   { id: "contact", label: "Contact Details", icon: Mail },
+  { id: "messages", label: "Messages (DB)", icon: MessageSquare },
   { id: "footer", label: "Footer & Brand", icon: Sliders },
   { id: "settings", label: "Security & Backup", icon: ShieldAlert },
 ];
@@ -117,6 +120,8 @@ function AdminDashboard() {
             isSaving={isSaving}
           />
         );
+      case "messages":
+        return <MessagesViewer />;
       case "footer":
         return (
           <FooterEditor

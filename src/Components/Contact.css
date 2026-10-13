@@ -215,6 +215,60 @@
   filter: brightness(1.08);
 }
 
+.contact-direct-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.form-field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.contact-form-input,
+.contact-form-textarea {
+  width: 100%;
+  background: var(--bg-card, #0f172a);
+  border: 1px solid var(--border-subtle, #334155);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--text-primary, #f8fafc);
+  outline: none;
+  font-family: inherit;
+  transition: border-color var(--transition-fast, 0.2s);
+}
+
+.contact-form-input:focus,
+.contact-form-textarea:focus {
+  border-color: var(--accent-primary, #38bdf8);
+}
+
+.contact-mailto-link {
+  display: block;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--accent-primary, #38bdf8);
+  text-decoration: none;
+  margin-top: 0.75rem;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.contact-mailto-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+@media (max-width: 500px) {
+  .form-field-group {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .contact-layout {
     grid-template-columns: 1fr;
