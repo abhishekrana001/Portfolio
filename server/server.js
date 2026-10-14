@@ -316,18 +316,23 @@ app.put('/api/auth/update-pin', async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // 7. File Upload Endpoint (Images, PDFs)
 // ─────────────────────────────────────────────────────────────
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
-  }
+app.post('/api/upload', (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message || 'File upload failed' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
 
-  const fileUrl = `/uploads/${req.file.filename}`;
-  res.json({
-    success: true,
-    url: fileUrl,
-    filename: req.file.filename,
-    originalName: req.file.originalname,
-    size: req.file.size,
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({
+      success: true,
+      url: fileUrl,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+    });
   });
 });
 

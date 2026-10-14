@@ -174,6 +174,63 @@ export function PortfolioProvider({ children }) {
     };
   }, []);
 
+function compressImageIfNeeded(file, maxDimension = 1200, quality = 0.85) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith("image/")) {
+      return resolve(file);
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width <= maxDimension && height <= maxDimension && file.size < 500 * 1024) {
+          return resolve(file);
+        }
+
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob && blob.size < file.size) {
+              const compressed = new File([blob], file.name, {
+                type: blob.type || file.type,
+                lastModified: Date.now(),
+              });
+              resolve(compressed);
+            } else {
+              resolve(file);
+            }
+          },
+          file.type === "image/png" ? "image/png" : "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+    };
+    reader.onerror = () => resolve(file);
+  });
+}
+
   /* ───────────────────────────────────────────────
      SAVE PORTFOLIO
      ─────────────────────────────────────────────── */
@@ -181,7 +238,11 @@ export function PortfolioProvider({ children }) {
     setIsSaving(true);
     const sanitized = sanitizeAndMergePortfolioData(newData);
     setData(sanitized);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+    } catch (storageErr) {
+      console.warn("Could not write to localStorage cache (quota exceeded):", storageErr);
+    }
 
     try {
       await safeFetch(`${API_BASE}/portfolio`, {
@@ -226,7 +287,8 @@ export function PortfolioProvider({ children }) {
   /* ───────────────────────────────────────────────
      UPLOAD FILE
      ─────────────────────────────────────────────── */
-  const uploadFile = async (file) => {
+  const uploadFile = async (rawFile) => {
+    const file = await compressImageIfNeeded(rawFile);
     try {
       const formData = new FormData();
       formData.append("file", file);

@@ -1,16 +1,16 @@
-import defaultResume from "../assets/My_Cv.pdf";
 import defaultProfileImg from "../assets/MyImg.webp";
 import { ArrowRight, Download, Mail, Code2 } from "lucide-react";
 import { GithubIcon, LinkedinIcon } from "./Icons";
 import { usePortfolio } from "../context/PortfolioContext";
+import { resolveProfileImage, resolveResumeUrl } from "../data/assetRegistry.js";
 import "./Home.css";
 
 function Home() {
   const { data } = usePortfolio();
   const homeData = data?.home || {};
 
-  const avatarSrc = homeData.customAvatarUrl?.trim() ? homeData.customAvatarUrl : defaultProfileImg;
-  const resumeDownloadSrc = homeData.resumeUrl?.trim() ? homeData.resumeUrl : defaultResume;
+  const avatarSrc = resolveProfileImage(homeData.customAvatarUrl);
+  const resumeDownloadSrc = resolveResumeUrl(homeData.resumeUrl);
   const resumeFileName = homeData.resumeFileName || "Abhishek_Rana_CV.pdf";
 
   return (
@@ -89,6 +89,10 @@ function Home() {
                 src={avatarSrc}
                 alt={`${homeData.firstName || "Abhishek"} ${homeData.lastName || "Rana"} profile`}
                 loading="eager"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = defaultProfileImg;
+                }}
               />
             </div>
 

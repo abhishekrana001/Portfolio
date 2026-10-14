@@ -25,7 +25,7 @@ function Contact() {
   // MongoDB Message form state
   const [msgForm, setMsgForm] = useState({ name: "", email: "", message: "" });
   const [isSending, setIsSending] = useState(false);
-  const [sendSuccess, setSendSuccess] = useState(null);
+  const [sendFeedback, setSendFeedback] = useState(null);
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(emailAddress);
@@ -48,17 +48,32 @@ function Contact() {
     }
 
     setIsSending(true);
-    setSendSuccess(null);
+    setSendFeedback(null);
 
     try {
       await api.sendMessage(msgForm);
-      setSendSuccess("Message received! Saved to MongoDB.");
+      setSendFeedback({
+        isError: false,
+        message: "Message received! Abhishek will get back to you soon.",
+      });
       setMsgForm({ name: "", email: "", message: "" });
     } catch {
-      setSendSuccess("Direct mail option ready below.");
+      // Offline fallback: save locally so it's not lost
+      try {
+        const stored = JSON.parse(localStorage.getItem("offline_contact_messages") || "[]");
+        stored.push({ ...msgForm, createdAt: new Date().toISOString() });
+        localStorage.setItem("offline_contact_messages", JSON.stringify(stored));
+      } catch {
+        // ignore
+      }
+
+      setSendFeedback({
+        isError: true,
+        message: "Server offline: Message recorded locally. You can also send via email below.",
+      });
     } finally {
       setIsSending(false);
-      setTimeout(() => setSendSuccess(null), 5000);
+      setTimeout(() => setSendFeedback(null), 6000);
     }
   };
 
@@ -245,23 +260,27 @@ function Contact() {
               style={{ width: "100%", cursor: "pointer", border: "none" }}
             >
               <Send size={16} />
-              <span>{isSending ? "Sending to MongoDB..." : "Send Message"}</span>
+              <span>{isSending ? "Sending to Abhishek..." : "Send Message"}</span>
             </button>
 
-            {sendSuccess && (
+            {sendFeedback && (
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "6px",
-                  color: "#10b981",
+                  color: sendFeedback.isError ? "#f87171" : "#10b981",
                   fontSize: "0.85rem",
                   marginTop: "8px",
                   justifyContent: "center",
+                  textAlign: "center",
                 }}
               >
-                <CheckCircle2 size={16} />
-                <span>{sendSuccess}</span>
+                <CheckCircle2
+                  size={16}
+                  style={{ color: sendFeedback.isError ? "#f87171" : "#10b981", flexShrink: 0 }}
+                />
+                <span>{sendFeedback.message}</span>
               </div>
             )}
           </form>

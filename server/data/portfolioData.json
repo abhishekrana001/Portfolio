@@ -1,4 +1,6 @@
 {
+  "_id": "6ace80b13bf34bd94a9c9021",
+  "slug": "main",
   "home": {
     "statusText": "Available for Full-time Roles & Projects",
     "greeting": "Hi there, I am",
@@ -10,7 +12,7 @@
     "resumeButtonText": "Download Resume",
     "resumeUrl": "",
     "resumeFileName": "Abhishek_Rana_CV.pdf",
-    "customAvatarUrl": "",
+    "customAvatarUrl": "/uploads/profille-1791960087749-4877.png",
     "badgeTitle": "Specialization",
     "badgeSubtitle": "Spring Boot & React",
     "socials": {
@@ -353,5 +355,8 @@
   },
   "security": {
     "adminPin": "6252"
-  }
+  },
+  "createdAt": "2026-10-13T19:04:17.680Z",
+  "updatedAt": "2026-10-14T06:41:31.147Z",
+  "__v": 0
 }

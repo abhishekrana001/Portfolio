@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Rana Testing",
+    "email": "testrana@example.com",
+    "subject": "General Inquiry",
+    "message": "Testing message functionality",
+    "read": false,
+    "_id": "6acf2343815b038445f27210",
+    "createdAt": "2026-10-14T06:37:55.775Z",
+    "updatedAt": "2026-10-14T06:37:55.775Z",
+    "__v": 0
+  }
+]

@@ -2,6 +2,7 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import { Upload, FileText, Check } from "lucide-react";
 import defaultProfileImg from "../../assets/MyImg.webp";
+import { resolveProfileImage } from "../../data/assetRegistry.js";
 
 function HeroEditor({ initialData, onSave, onUploadFile, isSaving }) {
   const [formData, setFormData] = useState({
@@ -75,7 +76,7 @@ function HeroEditor({ initialData, onSave, onUploadFile, isSaving }) {
     setTimeout(() => setSaveStatus(null), 3000);
   };
 
-  const currentAvatar = formData.customAvatarUrl?.trim() || defaultProfileImg;
+  const currentAvatar = resolveProfileImage(formData.customAvatarUrl);
 
   return (
     <form onSubmit={handleSubmit} className="admin-editor-card">
@@ -103,7 +104,15 @@ function HeroEditor({ initialData, onSave, onUploadFile, isSaving }) {
         <h3 className="admin-field-section-title">Profile Picture & Visuals</h3>
         <div className="avatar-uploader-row">
           <div className="avatar-preview-box">
-            <img src={currentAvatar} alt="Profile Preview" className="avatar-preview-img" />
+            <img
+              src={currentAvatar}
+              alt="Profile Preview"
+              className="avatar-preview-img"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = defaultProfileImg;
+              }}
+            />
           </div>
           <div className="avatar-controls">
             <div className="admin-form-group">

@@ -105,11 +105,6 @@ function AdminLogin({ onLogin }) {
         </form>
 
         <div className="admin-login-footer">
-          <div className="admin-pin-hint">
-            <span>Default PIN: </span>
-            <code>1234</code>
-            <span className="hint-note">(You can change it inside Settings)</span>
-          </div>
           <a href="/" className="back-to-portfolio-link">
             ← Return to Live Portfolio
           </a>
