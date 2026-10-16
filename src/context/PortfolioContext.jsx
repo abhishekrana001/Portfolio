@@ -11,63 +11,67 @@ const TOKEN_KEY = "portfolio_admin_token";
 function sanitizeAndMergePortfolioData(incoming) {
   if (!incoming || typeof incoming !== "object") return defaultPortfolioData;
 
+  // Helper: use incoming array if it's an actual array (even empty),
+  // only fall back to default if the field is null/undefined (never saved)
+  const resolveArray = (incomingArr, defaultArr) =>
+    Array.isArray(incomingArr) ? incomingArr : defaultArr;
+
   return {
     home: { ...defaultPortfolioData.home, ...(incoming.home || {}) },
     about: {
       ...defaultPortfolioData.about,
       ...(incoming.about || {}),
-      paragraphs:
-        Array.isArray(incoming.about?.paragraphs) && incoming.about.paragraphs.length > 0
-          ? incoming.about.paragraphs
-          : defaultPortfolioData.about.paragraphs,
-      highlights:
-        Array.isArray(incoming.about?.highlights) && incoming.about.highlights.length > 0
-          ? incoming.about.highlights
-          : defaultPortfolioData.about.highlights,
-      cards:
-        Array.isArray(incoming.about?.cards) && incoming.about.cards.length > 0
-          ? incoming.about.cards
-          : defaultPortfolioData.about.cards,
+      paragraphs: resolveArray(
+        incoming.about?.paragraphs,
+        defaultPortfolioData.about.paragraphs
+      ),
+      highlights: resolveArray(
+        incoming.about?.highlights,
+        defaultPortfolioData.about.highlights
+      ),
+      cards: resolveArray(
+        incoming.about?.cards,
+        defaultPortfolioData.about.cards
+      ),
     },
     skills: {
       ...defaultPortfolioData.skills,
       ...(incoming.skills || {}),
-      categories:
-        Array.isArray(incoming.skills?.categories) && incoming.skills.categories.length > 0
-          ? incoming.skills.categories
-          : defaultPortfolioData.skills.categories,
+      categories: resolveArray(
+        incoming.skills?.categories,
+        defaultPortfolioData.skills.categories
+      ),
     },
     projects: {
       ...defaultPortfolioData.projects,
       ...(incoming.projects || {}),
-      categories:
-        Array.isArray(incoming.projects?.categories) && incoming.projects.categories.length > 0
-          ? incoming.projects.categories
-          : defaultPortfolioData.projects.categories,
-      items:
-        Array.isArray(incoming.projects?.items) && incoming.projects.items.length > 0
-          ? incoming.projects.items.map((p) => {
-              if (!p) return {};
-              let tags = [];
-              if (Array.isArray(p.tags)) {
-                tags = p.tags.filter(Boolean).map(String);
-              } else if (typeof p.tags === "string") {
-                tags = p.tags.split(/[,|]/).map((t) => t.trim()).filter(Boolean);
-              }
-              return {
-                id: p.id || "p-" + Math.random().toString(36).substring(2, 9),
-                name: p.name || "",
-                category: p.category || "web",
-                imageKey: p.imageKey || "",
-                imageUrl: p.imageUrl || "",
-                alt: p.alt || "",
-                desc: p.desc || "",
-                tags,
-                repo: p.repo || "",
-                demoUrl: p.demoUrl || "",
-              };
-            })
-          : defaultPortfolioData.projects.items,
+      categories: resolveArray(
+        incoming.projects?.categories,
+        defaultPortfolioData.projects.categories
+      ),
+      items: Array.isArray(incoming.projects?.items)
+        ? incoming.projects.items.map((p) => {
+            if (!p) return {};
+            let tags = [];
+            if (Array.isArray(p.tags)) {
+              tags = p.tags.filter(Boolean).map(String);
+            } else if (typeof p.tags === "string") {
+              tags = p.tags.split(/[,|]/).map((t) => t.trim()).filter(Boolean);
+            }
+            return {
+              id: p.id || "p-" + Math.random().toString(36).substring(2, 9),
+              name: p.name || "",
+              category: p.category || "web",
+              imageKey: p.imageKey || "",
+              imageUrl: p.imageUrl || "",
+              alt: p.alt || "",
+              desc: p.desc || "",
+              tags,
+              repo: p.repo || "",
+              demoUrl: p.demoUrl || "",
+            };
+          })
+        : defaultPortfolioData.projects.items,
     },
     contact: { ...defaultPortfolioData.contact, ...(incoming.contact || {}) },
     footer: { ...defaultPortfolioData.footer, ...(incoming.footer || {}) },

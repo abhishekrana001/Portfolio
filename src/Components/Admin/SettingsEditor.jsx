@@ -1,8 +1,8 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { Download, Upload, RotateCcw, KeyRound, Check, AlertTriangle } from "lucide-react";
+import { Download, Upload, KeyRound, Check, AlertTriangle } from "lucide-react";
 
-function SettingsEditor({ onUpdatePin, onExportData, onImportData, onResetDefaults, isSaving }) {
+function SettingsEditor({ onUpdatePin, onExportData, onImportData, isSaving }) {
   const [pinForm, setPinForm] = useState({
     oldPin: "",
     newPin: "",
@@ -63,26 +63,13 @@ function SettingsEditor({ onUpdatePin, onExportData, onImportData, onResetDefaul
     reader.readAsText(file);
   };
 
-  const handleReset = async () => {
-    const confirm = window.confirm(
-      "Are you sure you want to reset all portfolio data back to initial defaults? All custom edits will be reverted."
-    );
-    if (!confirm) return;
-
-    const res = await onResetDefaults();
-    if (res?.success) {
-      setGeneralStatus("All portfolio sections reset to defaults!");
-      setTimeout(() => setGeneralStatus(null), 4000);
-    }
-  };
-
   return (
     <div className="admin-editor-card">
       <div className="admin-editor-header">
         <div>
           <h2 className="admin-editor-title">Security & Backup Settings</h2>
           <p className="admin-editor-subtitle">
-            Manage your access PIN, download full configuration backups, or restore defaults.
+            Manage your access PIN and download or restore full configuration backups.
           </p>
         </div>
       </div>
@@ -217,24 +204,6 @@ function SettingsEditor({ onUpdatePin, onExportData, onImportData, onResetDefaul
           </div>
         </div>
       </div>
-
-      {/* Reset to Factory Defaults */}
-      <div className="admin-field-section danger-zone">
-        <h3 className="admin-field-section-title text-danger">Reset Portfolio</h3>
-        <p className="admin-field-desc">
-          Revert all text, sections, categories, and projects back to the original default setup.
-        </p>
-
-        <button
-          type="button"
-          onClick={handleReset}
-          className="admin-btn-danger"
-          disabled={isSaving}
-        >
-          <RotateCcw size={16} />
-          <span>Reset All Content to Factory Defaults</span>
-        </button>
-      </div>
     </div>
   );
 }
@@ -243,7 +212,6 @@ SettingsEditor.propTypes = {
   onUpdatePin: PropTypes.func.isRequired,
   onExportData: PropTypes.func.isRequired,
   onImportData: PropTypes.func.isRequired,
-  onResetDefaults: PropTypes.func.isRequired,
   isSaving: PropTypes.bool,
 };
 

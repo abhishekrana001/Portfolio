@@ -136,7 +136,6 @@ function AdminDashboard() {
             onUpdatePin={updatePin}
             onExportData={exportDataJson}
             onImportData={importDataJson}
-            onResetDefaults={resetToDefaults}
             isSaving={isSaving}
           />
         );
