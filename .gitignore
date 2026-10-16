@@ -9,6 +9,10 @@ dist-ssr/
 build/
 *.local
 
+# Server Runtime Data (Do NOT commit — these are overwritten on deploy and reset live data!)
+server/data/portfolioData.json
+server/data/messages.json
+
 # Environment Variables & Secrets (Do not commit real secrets!)
 .env
 .env.local
