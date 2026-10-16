@@ -238,17 +238,21 @@ async function getActivePin() {
     // ignore
   }
   const backup = readBackupData();
-  return String(backup?.security?.adminPin || process.env.ADMIN_PIN || '1234');
+  // Only fall back to ADMIN_PIN env var — never hardcode a default
+  return String(backup?.security?.adminPin || process.env.ADMIN_PIN || '');
 }
 
 app.post('/api/auth/verify', async (req, res) => {
   const { pin } = req.body;
   const activePin = await getActivePin();
 
+  if (!activePin) {
+    return res.status(503).json({ success: false, error: 'PIN not configured on server.' });
+  }
+
   if (
     String(pin) === activePin ||
-    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN)) ||
-    String(pin) === '1234'
+    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN))
   ) {
     return res.json({ success: true, token: 'admin-session-' + Date.now() });
   }
@@ -259,10 +263,13 @@ app.post('/api/admin/login', async (req, res) => {
   const { pin } = req.body;
   const activePin = await getActivePin();
 
+  if (!activePin) {
+    return res.status(503).json({ success: false, error: 'PIN not configured on server.' });
+  }
+
   if (
     String(pin) === activePin ||
-    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN)) ||
-    String(pin) === '1234'
+    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN))
   ) {
     return res.json({ success: true, token: 'admin-session-' + Date.now() });
   }
@@ -278,8 +285,7 @@ app.put('/api/auth/update-pin', async (req, res) => {
 
   if (
     String(oldPin) !== activePin &&
-    String(oldPin) !== String(process.env.ADMIN_PIN) &&
-    String(oldPin) !== '1234'
+    !(process.env.ADMIN_PIN && String(oldPin) === String(process.env.ADMIN_PIN))
   ) {
     return res.status(401).json({ success: false, error: 'Current PIN is incorrect' });
   }

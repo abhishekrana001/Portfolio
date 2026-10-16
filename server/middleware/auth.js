@@ -37,8 +37,7 @@ export const adminAuth = async (req, res, next) => {
 
   const validPin =
     String(pin) === String(dbPin) ||
-    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN)) ||
-    String(pin) === '1234';
+    (process.env.ADMIN_PIN && String(pin) === String(process.env.ADMIN_PIN));
 
   if (!validPin) {
     return res.status(401).json({ error: 'Unauthorized: invalid PIN' });
