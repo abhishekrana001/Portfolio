@@ -20,24 +20,28 @@ function Skills() {
         .getSkills()
         .then((res) => {
           if (!isMounted) return;
-          if (Array.isArray(res) && res.length > 0) {
+          // res is the parsed JSON — could be an array (success) or
+          // an object with {error, skills:[]} (503 DB-offline response).
+          const skillsArray = Array.isArray(res) ? res : (Array.isArray(res?.skills) ? res.skills : []);
+          if (skillsArray.length > 0) {
             const categories = [
-              ...new Set(res.map((s) => s.category)),
+              ...new Set(skillsArray.map((s) => s.category)),
             ].map((cat) => ({
-              id: cat.toLowerCase().replace(/\s+/g, "-"),
+              id: cat.toLowerCase().replace(/\s+/g, '-'),
               name: cat,
-              subtitle: "",
-              icon: "Server",
-              items: res.filter((s) => s.category === cat).map((s) => s.name),
+              subtitle: '',
+              icon: 'Server',
+              items: skillsArray.filter((s) => s.category === cat).map((s) => s.name),
             }));
             setSkillsData({ categories });
           } else {
+            // DB offline or no skills seeded yet — use portfolio context data
             setSkillsData(contextData);
           }
         })
         .catch((err) => {
           if (!isMounted) return;
-          console.warn("API failed, using context data:", err.message);
+          console.warn('API failed, using context data:', err.message);
           setSkillsData(contextData);
         })
         .finally(() => {
