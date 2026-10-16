@@ -115,7 +115,7 @@ function HeroEditor({ initialData, onSave, onUploadFile, isSaving }) {
             />
           </div>
           <div className="avatar-controls">
-            <div className="admin-form-group">
+            <div className="admin-form-group" style={{ display: "none" }}>
               <label className="admin-label">Custom Avatar Image URL</label>
               <input
                 type="text"
@@ -304,19 +304,11 @@ function HeroEditor({ initialData, onSave, onUploadFile, isSaving }) {
           </div>
 
           <div className="admin-form-group">
-            <label className="admin-label">Custom Resume URL / File</label>
-            <div className="file-input-inline">
-              <input
-                type="text"
-                name="resumeUrl"
-                value={formData.resumeUrl}
-                onChange={handleChange}
-                placeholder="Leave empty for bundled CV or upload ->"
-                className="admin-input"
-              />
-              <label className="admin-upload-btn-compact" title="Upload PDF">
+            <label className="admin-label">Upload Resume / CV</label>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <label className="admin-upload-btn" title="Upload PDF Resume">
                 <FileText size={16} />
-                <span>{resumeUploading ? "..." : "Upload"}</span>
+                <span>{resumeUploading ? "Uploading..." : "Upload PDF / DOC"}</span>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx"
@@ -325,7 +317,12 @@ function HeroEditor({ initialData, onSave, onUploadFile, isSaving }) {
                   disabled={resumeUploading}
                 />
               </label>
+              {formData.resumeUrl && (
+                <span style={{ fontSize: "12px", color: "#22c55e" }}>✓ Resume uploaded</span>
+              )}
             </div>
+            {/* Hidden URL field — value maintained internally */}
+            <input type="hidden" name="resumeUrl" value={formData.resumeUrl} />
           </div>
         </div>
       </div>

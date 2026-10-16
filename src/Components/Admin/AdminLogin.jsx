@@ -27,7 +27,7 @@ function AdminLogin({ onLogin }) {
       if (result?.success) {
         localStorage.setItem("adminPin", cleanPin);
       } else {
-        setError(result?.message || "Incorrect PIN code. Default is 1234.");
+        setError(result?.message || "Incorrect PIN code. Please try again.");
       }
     } catch (err) {
       setIsSubmitting(false);

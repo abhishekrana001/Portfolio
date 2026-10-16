@@ -359,22 +359,49 @@ function compressImageIfNeeded(file, maxDimension = 1200, quality = 0.85) {
      UPDATE PIN
      ─────────────────────────────────────────────── */
   const updatePin = async (oldPin, newPin) => {
+    if (!oldPin || !newPin) {
+      return { success: false, message: "Please enter both current and new PIN." };
+    }
+    if (newPin.trim().length < 4) {
+      return { success: false, message: "New PIN must be at least 4 digits." };
+    }
+
+    // Try server endpoint first
+    if (isBackendConnected) {
+      try {
+        const resData = await safeFetch(`${API_BASE}/auth/update-pin`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldPin, newPin: newPin.trim() }),
+        });
+        if (resData?.success) {
+          // Update local cache too
+          const updatedData = {
+            ...data,
+            security: { ...data.security, adminPin: newPin.trim() },
+          };
+          setData(updatedData);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+          localStorage.setItem("adminPin", newPin.trim());
+          return { success: true, message: resData.message || "PIN updated successfully!" };
+        }
+        return { success: false, message: resData?.error || "Failed to update PIN." };
+      } catch (err) {
+        return { success: false, message: err.message || "Server error while updating PIN." };
+      }
+    }
+
+    // Offline fallback — verify against local data
     const currentPin = data?.security?.adminPin || "1234";
     if (oldPin !== currentPin) {
       return { success: false, message: "Current PIN is incorrect." };
     }
-    if (!newPin || newPin.trim().length < 4) {
-      return { success: false, message: "New PIN must be at least 4 digits." };
-    }
 
     const updatedData = {
       ...data,
-      security: {
-        ...data.security,
-        adminPin: newPin.trim(),
-      },
+      security: { ...data.security, adminPin: newPin.trim() },
     };
-
+    localStorage.setItem("adminPin", newPin.trim());
     return await savePortfolio(updatedData);
   };
 

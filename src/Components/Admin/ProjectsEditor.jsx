@@ -609,7 +609,7 @@ function ProjectsEditor({ initialData, onSave, onUploadFile, isSaving }) {
                       </div>
                     </div>
 
-                    <div className="mt-2">
+                    <div className="mt-2" style={{ display: "none" }}>
                       <label className="admin-label-sm">Or Direct Image URL</label>
                       <input
                         type="text"
