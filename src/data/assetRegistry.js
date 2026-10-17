@@ -66,7 +66,7 @@ export const AVAILABLE_ICON_NAMES = Object.keys(AVAILABLE_ICONS);
 
 function formatMediaUrl(url) {
   if (!url || typeof url !== "string") return url;
-  if (url.startsWith("/uploads/") && SERVER_ORIGIN) {
+  if ((url.startsWith("/uploads/") || url.startsWith("/api/files/")) && SERVER_ORIGIN) {
     return `${SERVER_ORIGIN}${url}`;
   }
   return url;

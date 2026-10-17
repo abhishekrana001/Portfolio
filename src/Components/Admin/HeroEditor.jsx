@@ -318,7 +318,17 @@ function HeroEditor({ initialData, onSave, onUploadFile, isSaving }) {
                 />
               </label>
               {formData.resumeUrl && (
-                <span style={{ fontSize: "12px", color: "#22c55e" }}>✓ Resume uploaded</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "12px", color: "#22c55e" }}>✓ Resume uploaded</span>
+                  <button
+                    type="button"
+                    className="admin-btn-secondary"
+                    style={{ fontSize: "12px", padding: "4px 8px" }}
+                    onClick={() => setFormData((p) => ({ ...p, resumeUrl: "", resumeFileName: "Abhishek_Rana_CV.pdf" }))}
+                  >
+                    Reset to Default CV
+                  </button>
+                </div>
               )}
             </div>
             {/* Hidden URL field — value maintained internally */}

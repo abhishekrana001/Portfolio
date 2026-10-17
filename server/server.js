@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import { seedDatabase } from './config/seed.js';
 import Portfolio from './models/Portfolio.js';
+import File from './models/File.js';
 import projectRoutes from './routes/projectRoutes.js';
 import skillRoutes from './routes/skillRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
@@ -33,29 +34,15 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Multer Storage for file uploads (Images & CV/Resume)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const sanitizedName = path
-      .basename(file.originalname, ext)
-      .replace(/[^a-zA-Z0-9_-]/g, '_');
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e4);
-    cb(null, `${sanitizedName}-${uniqueSuffix}${ext}`);
-  },
-});
-
+// Multer in-memory storage: file buffer is preserved so it can be saved directly into MongoDB Atlas
 const upload = multer({
-  storage,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB max
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB max (fits safely within MongoDB Atlas 16MB BSON limit)
   fileFilter: (req, file, cb) => {
     const ok =
-      /jpeg|jpg|png|webp|gif|svg|pdf/.test(file.mimetype) ||
-      /\.(jpg|jpeg|png|webp|gif|svg|pdf)$/i.test(file.originalname);
-    cb(ok ? null : new Error('Only image files and PDFs are allowed'), ok);
+      /jpeg|jpg|png|webp|gif|svg|pdf|msword|document/.test(file.mimetype) ||
+      /\.(jpg|jpeg|png|webp|gif|svg|pdf|doc|docx)$/i.test(file.originalname);
+    cb(ok ? null : new Error('Only image files and PDFs/Docs are allowed'), ok);
   },
 });
 
@@ -69,6 +56,24 @@ app.use(
 );
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve files from MongoDB Atlas if available, falling back to local disk
+app.get('/uploads/:filename', async (req, res, next) => {
+  const { filename } = req.params;
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const fileDoc = await File.findOne({ filename });
+      if (fileDoc) {
+        res.set('Content-Type', fileDoc.contentType || 'application/octet-stream');
+        res.set('Cache-Control', 'public, max-age=31536000');
+        return res.send(fileDoc.data);
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching file from MongoDB for /uploads:', err.message);
+  }
+  next();
+});
 app.use('/uploads', express.static(uploadsDir));
 
 // Fallback JSON Helpers (Used if MongoDB is temporarily connecting or as backup)
@@ -320,10 +325,10 @@ app.put('/api/auth/update-pin', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// 7. File Upload Endpoint (Images, PDFs)
+// 7. File Upload & Retrieval Endpoints (MongoDB Atlas Persistent Storage)
 // ─────────────────────────────────────────────────────────────
 app.post('/api/upload', (req, res) => {
-  upload.single('file')(req, res, (err) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ error: err.message || 'File upload failed' });
     }
@@ -331,15 +336,72 @@ app.post('/api/upload', (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({
-      success: true,
-      url: fileUrl,
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      size: req.file.size,
-    });
+    const ext = path.extname(req.file.originalname);
+    const sanitizedName = path
+      .basename(req.file.originalname, ext)
+      .replace(/[^a-zA-Z0-9_-]/g, '_');
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e4);
+    const filename = `${sanitizedName}-${uniqueSuffix}${ext}`;
+    const contentType = req.file.mimetype || 'application/octet-stream';
+
+    try {
+      if (mongoose.connection.readyState === 1) {
+        await File.findOneAndUpdate(
+          { filename },
+          {
+            filename,
+            originalName: req.file.originalname,
+            contentType,
+            size: req.file.size,
+            data: req.file.buffer,
+          },
+          { upsert: true, new: true }
+        );
+        console.log(`✅ File permanently stored in MongoDB Atlas: ${filename}`);
+      }
+
+      // Also write to local cache if possible
+      try {
+        fs.writeFileSync(path.join(uploadsDir, filename), req.file.buffer);
+      } catch (_) {}
+
+      const fileUrl = `/api/files/${filename}`;
+      res.json({
+        success: true,
+        url: fileUrl,
+        filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+      });
+    } catch (saveErr) {
+      console.error('Error saving file to MongoDB:', saveErr.message);
+      res.status(500).json({ error: 'Failed to save file to database' });
+    }
   });
+});
+
+app.get('/api/files/:filename', async (req, res) => {
+  const { filename } = req.params;
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const fileDoc = await File.findOne({ filename });
+      if (fileDoc) {
+        res.set('Content-Type', fileDoc.contentType || 'application/octet-stream');
+        res.set('Cache-Control', 'public, max-age=31536000');
+        return res.send(fileDoc.data);
+      }
+    }
+  } catch (err) {
+    console.error('Error retrieving file from MongoDB:', err.message);
+  }
+
+  // Fallback to local disk if MongoDB does not have it
+  const localPath = path.join(uploadsDir, filename);
+  if (fs.existsSync(localPath)) {
+    return res.sendFile(localPath);
+  }
+
+  res.status(404).json({ error: 'File not found' });
 });
 
 // ─────────────────────────────────────────────────────────────
